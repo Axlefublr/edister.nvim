@@ -80,7 +80,7 @@ local writable_registers = {
 
 --- Get a character from the user, unless they press escape, in which case return nil, usually to cancel whatever action the user wanted to do.
 ---@param prompt string what text to show when asking the user for the character.
-function M.get_char(prompt)
+local function get_char(prompt)
 	prompt = prompt or ''
 	vim.api.nvim_echo({ { prompt, 'Input' } }, true, {})
 	local char = vim.fn.getcharstr()
@@ -102,7 +102,7 @@ function table.contains(table, element)
 end
 
 ---@return table win_opts to be used in `vim.api.nvim_open_win()`
-function build_win_opts()
+local function build_win_opts()
 	local width = plugin_opts.absolute_width and plugin_opts.width or math.floor(vim.o.columns * plugin_opts.width)
 	local height = plugin_opts.absolute_height and plugin_opts.height or math.floor(vim.o.lines * plugin_opts.height)
 	local columns = plugin_opts.columns or math.min((vim.o.columns - width) / 2)
@@ -118,10 +118,10 @@ function build_win_opts()
 end
 
 ---@param register string? the register you want to edit. If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings). Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased. this way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit. you can use it as a hack to get a blank floating window to quickly do something in), /).
----@param type string? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example.
-function M.edit_register(register, type)
+---@param reg_type string? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example.
+function M.edit_register(register, reg_type)
 	if not register then
-		local char = M.get_char('enter a register: ')
+		local char = get_char('enter a register: ')
 		if not char then return end -- no error message here because if you press escape, it is obvious you did that to cancel the action.
 		register = char
 	end
@@ -133,7 +133,7 @@ function M.edit_register(register, type)
 
 	if register:match('%u') then register = register:lower() end -- the `%u` pattern catches uppercase letters
 
-	if not type then type = vim.fn.getregtype(register) end
+	if not reg_type then reg_type = vim.fn.getregtype(register) end
 	---@diagnostic disable-next-line: redundant-parameter
 	local lines = vim.fn.getreg(register, 1, true)
 
@@ -149,6 +149,7 @@ function M.edit_register(register, type)
 		callback = function()
 			local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 			vim.fn.setreg(register, lines, type)
+			vim.fn.setreg(register, lines, reg_type)
 		end,
 	})
 end

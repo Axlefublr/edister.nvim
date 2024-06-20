@@ -63,8 +63,8 @@ So now you can just press `q` and you'll see the floating window! Edit the regis
 
 Valid (writable) registers are: `", +, *, #, =, _, /, 0-9, a-z, A-Z`. Uppercase registers aren't different from lowercase registers in this plugin, they're supported just so you could accidentally press shift and still use the plugin fine.
 
-### `type`
+### `reg_type`
 
-The second argument is the `type` of the register that you want it to be. Registers can be linewise, characterwise, blockwise. By default, the type of an edited register stays the same. So if you edit a linewise register, it stays linewise. Editing a characterwise register? Yep, will also stay characterwise.
+The second argument is the type of the register that you want it to be. Registers can be linewise, characterwise, blockwise. By default, the type of an edited register stays the same. So if you edit a linewise register, it stays linewise. Editing a characterwise register? Yep, will also stay characterwise.
 
-But you can pass the `type` argument to change some register's type to another one. `type` accepts the same things as `:h setreg()` does, for specifying the register type.
+But you can pass the `reg_type` argument to change some register's type to another one. `reg_type` accepts the same things as `:h setreg()` does, for specifying the register type.
