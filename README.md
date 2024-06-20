@@ -68,3 +68,15 @@ Valid (writable) registers are: `", +, *, #, =, _, /, 0-9, a-z, A-Z`. Uppercase 
 The second argument is the type of the register that you want it to be. Registers can be linewise, characterwise, blockwise. By default, the type of an edited register stays the same. So if you edit a linewise register, it stays linewise. Editing a characterwise register? Yep, will also stay characterwise.
 
 But you can pass the `reg_type` argument to change some register's type to another one. `reg_type` accepts the same things as `:h setreg()` does, for specifying the register type.
+
+If you set `reg_type` to the special variant "ask", then, after you close the floating window, you will be interactively asked for the register type that you want. Press a single character out of l (linewise) / c (characterwise) / b (blockwise), and the register will be turned into that type (keeping your edit).
+
+If you pressed escape, your edit isn't saved at all. You get to have the option of the final "nevermind" here, unlike in default behavior. If the character you pressed isn't one of l / c / b, the previous register type will be kept, and your edit _will_ be saved.
+
+Suggested mapping:
+
+```lua
+vim.keymap.set('n', '<Leader>G', function() require('edister').edit_register(nil, 'ask') end)
+```
+
+It also may be viable to have this as your default mapping, if you're okay with having to press an additional key every time you want to edit a register.

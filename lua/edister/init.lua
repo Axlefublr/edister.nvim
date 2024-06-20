@@ -113,12 +113,19 @@ local function build_win_opts()
 		height = height,
 		col = columns,
 		row = rows,
-		border = plugin_opts.border
+		border = plugin_opts.border,
 	}
 end
 
+local function ask_reg_type()
+	local input = get_char('enter the register type (l / c / b): ')
+	if not input then return nil end
+	if not table.contains({ 'l', 'c', 'b' }, input) then vim.notify('edister: expected one of l / c / b\nyou entered: ' .. input .. '\nthe register type will not be changed') return 'wrong' end
+	return input
+end
+
 ---@param register string? the register you want to edit. If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings). Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased. this way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit. you can use it as a hack to get a blank floating window to quickly do something in), /).
----@param reg_type string? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example.
+---@param reg_type string|'ask'? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example. If passed "ask", once you close the editing window, you will be asked one of l / c / b (single character that you're expected to press) to change the register into linewise / characterwise / blockwise. If you press escape in that prompt, your edit won't be saved at all. If you press the wrong character, that isn't one of l / c / b, the register type will not be changed, and the result will be like you didn't pass `reg_type` to begin with.
 function M.edit_register(register, reg_type)
 	if not register then
 		local char = get_char('enter a register: ')
@@ -129,6 +136,12 @@ function M.edit_register(register, reg_type)
 	if not table.contains(writable_registers, register) then
 		vim.notify('edister: only writable registers are allowed\nyou passed: ' .. register)
 		return
+	end
+
+	local ask = false
+	if reg_type == 'ask' then
+		ask = true
+		reg_type = nil
 	end
 
 	if register:match('%u') then register = register:lower() end -- the `%u` pattern catches uppercase letters
@@ -148,7 +161,11 @@ function M.edit_register(register, reg_type)
 		pattern = '<buffer>',
 		callback = function()
 			local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-			vim.fn.setreg(register, lines, type)
+			if ask then
+				local entered = ask_reg_type()
+				if not entered then return end
+				if entered ~= 'wrong' then reg_type = entered end
+			end
 			vim.fn.setreg(register, lines, reg_type)
 		end,
 	})
