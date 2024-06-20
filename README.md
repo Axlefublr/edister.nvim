@@ -1,6 +1,6 @@
 # edister.nvim
 
-> **_edi_**t regi**_ster_**
+> EDIt regiSTER
 
 This plugin lets you make a mapping to quickly edit any (writable) register in a floating window.
 
@@ -14,17 +14,26 @@ With lazy:
 
 ```lua
 return {
-	'Axlefublr/edister.nvim',
-	lazy = true, -- The mapping after automatically lazy-loads this plugin, so it can be lazy.
-	opts = { -- The options specified here are defaults. So if you agree with them, you don't need to set them in your configuration. Matter of fact, you don't even need to call the setup function in that case.
-		absolute_width = false, -- Interpret the `width` option as the amount of columns, rather than a percentage.
-		absolute_height = false, -- Same as above, but for `height`
-		width = 0.6, -- The percentage of terminal window width that the floating window should occupy. 60% by default.
-		height = 0.3, -- Same as above, but for height. 30% by default.
-		columns = nil, -- If unset, center the floating window vertically. If set to a number, offset the window that many columns from the left side of your neovim window.
-		rows = nil, -- Same as above, but *horizontally* instead, and from the top side of your neovim window. If you don't set `rows` and `columns`, the floating window is fully centered.
-		border = nil, -- Expects the same thing as the `border` option in `:h nvim_open_win()`. No borders by default.
-	}
+  'Axlefublr/edister.nvim',
+  -- The mapping after automatically lazy-loads this plugin, so it can be lazy.
+  lazy = true,
+  -- The options specified here are defaults. So if you agree with them, you don't need to set them in your configuration. Matter of fact, you don't even need to call the setup function in that case.
+  opts = {
+    -- Interpret the `width` option as the amount of columns, rather than a percentage.
+    absolute_width = false,
+    -- Same as above, but for `height`
+    absolute_height = false,
+    -- The percentage of terminal window width that the floating window should occupy. 60% by default.
+    width = 0.6,
+    -- Same as above, but for height. 30% by default.
+    height = 0.3,
+    -- If unset, center the floating window vertically. If set to a number, offset the window that many columns from the left side of your neovim window.
+    columns = nil,
+    -- Same as above, but *horizontally* instead, and from the top side of your neovim window. If you don't set `rows` and `columns`, the floating window is fully centered.
+    rows = nil,
+    -- Expects the same thing as the `border` option in `:h nvim_open_win()`. No borders by default.
+    border = nil,
+  }
 }
 ```
 
@@ -40,7 +49,7 @@ The `edit_register` function can take two arguments.
 
 ### `register`
 
-The first argument is `register` that you want to edit.
+The first argument is the `register` that you want to edit.
 
 However, if you don't specify that argument (or set it to `nil`), a register is going to be automatically asked from you, interactively.
 
@@ -48,7 +57,7 @@ So, the workflows ends up being something like this:
 
 > "oh damn, I messed up that macro in the q register, gotta edit it now!"
 
-Then you press `<Leader>g` and see an input prompt, asking you to enter a register. This input prompt just expect you to press a single character, and makes sure that what you enter is a valid, writable register.
+Then you press `<Leader>g` and see an input prompt, asking you to enter a register. This input prompt just expects you to press a single character, and makes sure that what you enter is a valid, writable register.
 
 So now you can just press `q` and you'll see the floating window! Edit the register however you like, then close the window. Your changes are saved! I have to warn you though, your changes are going to be saved even if you didn't _save_ and close, and instead just closed.
 
