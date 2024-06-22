@@ -53,7 +53,7 @@ The first argument is the `register` that you want to edit.
 
 However, if you don't specify that argument (or set it to `nil`), a register is going to be automatically asked from you, interactively.
 
-So, the workflows ends up being something like this:
+So, the workflow ends up being something like this:
 
 > "oh damn, I messed up that macro in the q register, gotta edit it now!"
 
@@ -104,7 +104,7 @@ It has a special one as well: `;` gets turned into `:`. This is just so you don'
 
 `reg_type` is exactly the same as in `edit_register`.
 
-The reasoning for this function existing, is that I often copy something, only to realize one second later that I wanted to copy something into a register. You can now do this retroactively, thanks to this functionality.
+The reasoning for this function existing, is that I often copy something, only to realize one second later that I wanted to copy that something into a register. You can now do this retroactively, thanks to this functionality.
 
 Then, maybe you want to paste something from a register in multiple places. You'll have to do `"ap` again and again. Now you have the option to just `<Leader>fa'` to move the contents of `a` into your default register, to be able to paste things with just `p`.
 
