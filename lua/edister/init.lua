@@ -197,7 +197,10 @@ function M.edit_register(register, reg_type)
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
 	local win_opts = build_win_opts()
-	vim.api.nvim_open_win(buf, true, win_opts)
+	local window = vim.api.nvim_open_win(buf, true, win_opts)
+	vim.api.nvim_win_set_option(window, 'foldcolumn', '0') -- I do see that it's deprecated, but how the hell else do you do this then?
+	vim.api.nvim_win_set_option(window, 'number', false)
+	vim.api.nvim_win_set_option(window, 'relativenumber', false)
 
 	vim.api.nvim_create_autocmd('BufWinLeave', {
 		pattern = '<buffer>',
