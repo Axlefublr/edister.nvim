@@ -6,14 +6,15 @@ local plugin_opts = require('edister.config')
 -- Thanks to the power of vim, writing out all of these took maybe 30 seconds;
 -- And I believe it'll be easier to understand to the potential code reader, rather than looking at some appended character range.
 -- Because it's literally just every single character that is allowed. Very simple and direct.
-local writable_registers = {
+local read_write_registers = {
+	"'",
 	'"',
 	'+',
 	'*',
 	'#',
+	'/',
 	'=',
 	'_',
-	'/',
 	'0',
 	'1',
 	'2',
@@ -78,6 +79,16 @@ local writable_registers = {
 	'Z',
 }
 
+local writable_registers = read_write_registers
+
+local readable_registers = {
+	':',
+	';',
+	'.',
+	'%'
+}
+vim.list_extend(readable_registers, read_write_registers)
+
 --- Get a character from the user, unless they press escape, in which case return nil, usually to cancel whatever action the user wanted to do.
 ---@param prompt string what text to show when asking the user for the character.
 local function get_char(prompt)
@@ -120,31 +131,62 @@ end
 local function ask_reg_type()
 	local input = get_char('enter the register type (l / c / b): ')
 	if not input then return nil end
-	if not table.contains({ 'l', 'c', 'b' }, input) then vim.notify('edister: expected one of l / c / b\nyou entered: ' .. input .. '\nthe register type will not be changed') return 'wrong' end
+	if not table.contains({ 'l', 'c', 'b' }, input) then
+		vim.notify(
+			'edister: expected one of l / c / b\nyou entered: ' .. input .. '\nthe register type will not be changed'
+		)
+		return 'wrong'
+	end
 	return input
 end
 
----@param register string? the register you want to edit. If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings). Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased. this way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit. you can use it as a hack to get a blank floating window to quickly do something in), /).
----@param reg_type string|'ask'? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example. If passed "ask", once you close the editing window, you will be asked one of l / c / b (single character that you're expected to press) to change the register into linewise / characterwise / blockwise. If you press escape in that prompt, your edit won't be saved at all. If you press the wrong character, that isn't one of l / c / b, the register type will not be changed, and the result will be like you didn't pass `reg_type` to begin with.
-function M.edit_register(register, reg_type)
+local function resolve_default_register()
+	if vim.go.clipboard == 'unnamedplus' or vim.go.clipboard == 'unnamedplus,unnamed' then
+		return '+'
+	elseif vim.go.clipboard == 'unnamed' or vim.go.clipboard == 'unnamed,unnamedplus' then
+		return '*'
+	else
+		return '"'
+	end
+end
+
+---@param register string?
+---@param message string?
+---@param readable boolean?
+local function validate_register(register, message, readable)
 	if not register then
-		local char = get_char('enter a register: ')
-		if not char then return end -- no error message here because if you press escape, it is obvious you did that to cancel the action.
+		local char = get_char(message or 'enter a register: ')
+		if not char then return nil end -- no error message here because if you press escape, it is obvious you did that to cancel the action.
 		register = char
 	end
 
-	if not table.contains(writable_registers, register) then
-		vim.notify('edister: only writable registers are allowed\nyou passed: ' .. register)
-		return
+	if register:match('%u') then
+		register = register:lower() -- the `%u` pattern catches uppercase letters
+	elseif register == "'" then
+		register = resolve_default_register()
+	elseif register == ';' then
+		register = ':'
 	end
+
+	if not table.contains(readable and readable_registers or writable_registers, register) then
+		vim.notify('edister: only ' .. (readable and 'readable' or 'writable') .. ' registers are allowed\nyou passed: ' .. register)
+		return nil
+	end
+
+	return register
+end
+
+---@param register string? the register you want to edit. If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings). Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased. this way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit. you can use it as a hack to get a blank floating window to quickly do something in), /, ' gets resolved to whatever your default register effectively is, according to the clipboard option — if clipboard is unnamed or unnamed,unnamedplus, gets resolved to *; if it's unnamedplus or unnamedplus,unnamed, gets resolved to +, if clipboard option is anything else, gets resolved to ". ; gets turned into :).
+---@param reg_type string|'ask'? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example. If passed "ask", once you close the editing window, you will be asked one of l / c / b (single character that you're expected to press) to change the register into linewise / characterwise / blockwise. If you press escape in that prompt, your edit won't be saved at all. If you press the wrong character, that isn't one of l / c / b, the register type will not be changed, and the result will be like you didn't pass `reg_type` to begin with.
+function M.edit_register(register, reg_type)
+	register = validate_register(register)
+	if not register then return end
 
 	local ask = false
 	if reg_type == 'ask' then
 		ask = true
 		reg_type = nil
 	end
-
-	if register:match('%u') then register = register:lower() end -- the `%u` pattern catches uppercase letters
 
 	if not reg_type then reg_type = vim.fn.getregtype(register) end
 	---@diagnostic disable-next-line: redundant-parameter
@@ -169,6 +211,33 @@ function M.edit_register(register, reg_type)
 			vim.fn.setreg(register, lines, reg_type)
 		end,
 	})
+end
+
+---@param one string? the register to move from. Everything from the comment about the register parameter in `edit_register` applies here too.
+---@param another string? the register to move into. Everything applies here too.
+---@param reg_type string|'ask'? everything from the comment about the `reg_type` parameter in `edit_register` applies here too.
+function M.move_from_one_to_another(one, another, reg_type)
+	one = validate_register(one, 'enter the register to move from: ', true)
+	if not one then return end
+	another = validate_register(another, 'enter the register to move into: ')
+	if not another then return end
+
+	local ask = false
+	if reg_type == 'ask' then
+		ask = true
+		reg_type = nil
+	end
+
+	if not reg_type then reg_type = vim.fn.getregtype(one) end
+	---@diagnostic disable-next-line: redundant-parameter
+	local lines = vim.fn.getreg(one, 1, true)
+
+	if ask then
+		local entered = ask_reg_type()
+		if not entered then return end
+		if entered ~= 'wrong' then reg_type = entered end
+	end
+	vim.fn.setreg(another, lines, reg_type)
 end
 
 function M.setup(opts) plugin_opts = vim.tbl_deep_extend('force', plugin_opts, opts) end
