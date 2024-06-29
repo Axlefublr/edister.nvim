@@ -129,15 +129,17 @@ local function build_win_opts()
 end
 
 local function ask_reg_type()
-	local input = get_char('enter the register type (l / c / b): ')
-	if not input then return nil end
-	if not table.contains({ 'l', 'c', 'b' }, input) then
-		vim.notify(
-			'edister: expected one of l / c / b\nyou entered: ' .. input .. '\nthe register type will not be changed'
-		)
-		return 'wrong'
+	local picked = vim.fn.confirm('Pick register type', 'Keep\nLine\nChar\nBlock')
+	if picked == 0 then return nil end
+	if picked == 1 then
+		return 'keep'
+	elseif picked == 2 then
+		return 'l'
+	elseif picked == 3 then
+		return 'c'
+	elseif picked == 4 then
+		return 'b'
 	end
-	return input
 end
 
 local function resolve_default_register()
@@ -209,7 +211,7 @@ function M.edit_register(register, reg_type)
 			if ask then
 				local entered = ask_reg_type()
 				if not entered then return end
-				if entered ~= 'wrong' then reg_type = entered end
+				if entered ~= 'keep' then reg_type = entered end
 			end
 			vim.fn.setreg(register, lines, reg_type)
 		end,
@@ -238,7 +240,7 @@ function M.move_from_one_to_another(one, another, reg_type)
 	if ask then
 		local entered = ask_reg_type()
 		if not entered then return end
-		if entered ~= 'wrong' then reg_type = entered end
+		if entered ~= 'keep' then reg_type = entered end
 	end
 	vim.fn.setreg(another, lines, reg_type)
 end

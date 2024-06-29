@@ -71,9 +71,9 @@ The second argument is the type of the register that you want it to be. Register
 
 But you can pass the `reg_type` argument to change some register's type to another one. `reg_type` accepts the same things as `:h setreg()` does, for specifying the register type.
 
-If you set `reg_type` to the special variant "ask", then, after you close the floating window, you will be interactively asked for the register type that you want. Press a single character out of l (linewise) / c (characterwise) / b (blockwise), and the register will be turned into that type (keeping your edit).
+If you set `reg_type` to the special variant "ask", then, after you close the floating window, you will be interactively asked for the register type that you want. Press a single character out of k (keep the same register type) / l (linewise) / c (characterwise) / b (blockwise), and the register will be turned into that type (keeping your edit). `k` is the default, so you can press enter instead if you'd like.
 
-If you pressed escape, your edit isn't saved at all. You get to have the option of the final "nevermind" here, unlike in default behavior. If the character you pressed isn't one of l / c / b, the previous register type will be kept, and your edit _will_ be saved.
+If you pressed escape, your edit isn't saved at all. You get to have the option of the final "nevermind" here, unlike in default behavior. If the character you pressed isn't one of l / c / b or _is_ k, the previous register type will be kept, and your edit _will_ be saved.
 
 Suggested mapping:
 
@@ -92,11 +92,11 @@ vim.keymap.set('n', '<Leader>F', function() require('edister').move_from_one_to_
 
 This function lets you move the contents of a register into another register.
 
-`one` is the register you want to move *from*, and `another` is the register you want to move into.
+`one` is the register you want to move _from_, and `another` is the register you want to move into.
 
 `another` works like the register argument in `edit_register`: among many things, it can only be a writable register.
 
-`one` can accept any *readable* register (which means any register), so including writable registers, it also has `%`, `:`, `.`.
+`one` can accept any _readable_ register (which means any register), so including writable registers, it also has `%`, `:`, `.`.
 
 It has a special one as well: `;` gets turned into `:`. This is just so you don't have to press shift.
 
