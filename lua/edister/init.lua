@@ -89,7 +89,7 @@ local readable_registers = {
 }
 vim.list_extend(readable_registers, read_write_registers)
 
---- Get a character from the user, unless they press escape, in which case return nil, usually to cancel whatever action the user wanted to do.
+---Get a character from the user, unless they press escape, in which case return nil, usually to cancel whatever action the user wanted to do.
 ---@param prompt string what text to show when asking the user for the character.
 local function get_char(prompt)
 	prompt = prompt or ''
@@ -102,7 +102,7 @@ local function get_char(prompt)
 	return char
 end
 
----@param table table expected to be an array-like table.
+---@param table any[]
 ---@param element any
 ---@return boolean
 function table.contains(table, element)
@@ -178,8 +178,21 @@ local function validate_register(register, message, readable)
 	return register
 end
 
----@param register string? the register you want to edit. If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings). Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased. this way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit. you can use it as a hack to get a blank floating window to quickly do something in), /, ' gets resolved to whatever your default register effectively is, according to the clipboard option — if clipboard is unnamed or unnamed,unnamedplus, gets resolved to *; if it's unnamedplus or unnamedplus,unnamed, gets resolved to +, if clipboard option is anything else, gets resolved to ". ; gets turned into :).
----@param reg_type string|'ask'? the register type, as accepted in `:h setreg()`. If `nil` (not passed), the register type is kept the same. For example, if you're editing a linewise register, it stays linewise. If it was blockwise, it would stay blockwise. This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example. If passed "ask", once you close the editing window, you will be asked one of l / c / b (single character that you're expected to press) to change the register into linewise / characterwise / blockwise. If you press escape in that prompt, your edit won't be saved at all. If you press the wrong character, that isn't one of l / c / b, the register type will not be changed, and the result will be like you didn't pass `reg_type` to begin with.
+---The register you want to edit.
+---If you don't pass this argument, you're going to be asked for a register interactively (this lets you have to have only a single mapping for this plugin, that will work for every register, rather than having to make ~26 separate mappings).
+---Only writable registers are allowed (", +, *, 0-9, a-z, A-Z (they get lowercased.
+---This way you can accidentally press shift and for it to still work), #, =, _ (you can never *read* from this register, so it's useless to edit.
+---You can use it as a hack to get a blank floating window to quickly do something in), /, ' gets resolved to whatever your default register effectively is, according to the clipboard option — if clipboard is unnamed or unnamed,unnamedplus, gets resolved to *; if it's unnamedplus or unnamedplus,unnamed, gets resolved to +, if clipboard option is anything else, gets resolved to ". ; gets turned into :).
+---@param register string?
+---The register type, as accepted in `:h setreg()`.
+---If `nil` (not passed), the register type is kept the same.
+---For example, if you're editing a linewise register, it stays linewise.
+---If it was blockwise, it would stay blockwise.
+---This parameter is useful if you want to *switch* a linewise register into a characterwise register, for example.
+---If passed "ask", once you close the editing window, you will be asked one of l / c / b (single character that you're expected to press) to change the register into linewise / characterwise / blockwise.
+---If you press escape in that prompt, your edit won't be saved at all.
+---If you press the wrong character, that isn't one of l / c / b, the register type will not be changed, and the result will be like you didn't pass `reg_type` to begin with.
+---@param reg_type string|'ask'?
 function M.edit_register(register, reg_type)
 	register = validate_register(register)
 	if not register then return end
